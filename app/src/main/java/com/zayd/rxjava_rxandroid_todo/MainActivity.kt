@@ -10,6 +10,7 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.functions.Consumer
 import io.reactivex.rxjava3.schedulers.Schedulers
+import java.util.concurrent.TimeUnit
 
 
 class MainActivity : AppCompatActivity() {
@@ -51,6 +52,24 @@ class MainActivity : AppCompatActivity() {
          * repeats tasks assigned to it
          */
         repeatOperatorExample()
+
+        /**
+         * interval operator example
+         *interval operator emits observable at every interval say if 1 sec is specified, it will
+         * emit every sec
+         */
+
+        intervalOperatorExample()
+
+        /**
+         * timer operator example
+         * timer operator is different from interval instead of emitting it at intervals, it will
+         * emit once only when the timer has elapsed
+         */
+
+        timerOperatorExample()
+
+
     }
 
     private fun basicObservableExample() {
@@ -229,6 +248,58 @@ class MainActivity : AppCompatActivity() {
 
             override fun onComplete() {
             }
+        })
+    }
+
+    private fun intervalOperatorExample() {
+        val intervalObservable: Observable<Long> = Observable
+            .interval(1, TimeUnit.SECONDS)
+            .subscribeOn(Schedulers.io())
+            .takeWhile {
+                Log.d(TAG, "test: $it, thread: ${Thread.currentThread().name}")
+                return@takeWhile it <= 5
+            }
+            .observeOn(AndroidSchedulers.mainThread())
+
+        intervalObservable.subscribe(object : Observer<Long> {
+            override fun onSubscribe(d: Disposable?) {
+
+            }
+
+            override fun onNext(t: Long?) {
+                Log.d(TAG, "onNext: $t")
+            }
+
+            override fun onError(e: Throwable?) {
+            }
+
+            override fun onComplete() {
+            }
+
+        })
+    }
+
+    private fun timerOperatorExample() {
+        val intervalObservable: Observable<Long> = Observable
+            .timer(3, TimeUnit.SECONDS)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+
+        intervalObservable.subscribe(object : Observer<Long> {
+            override fun onSubscribe(d: Disposable?) {
+
+            }
+
+            override fun onNext(t: Long?) {
+                Log.d(TAG, "onNext: $t")
+            }
+
+            override fun onError(e: Throwable?) {
+            }
+
+            override fun onComplete() {
+            }
+
         })
     }
 
