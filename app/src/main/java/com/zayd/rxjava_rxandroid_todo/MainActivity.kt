@@ -2,6 +2,7 @@ package com.zayd.rxjava_rxandroid_todo
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.SearchView
 import androidx.appcompat.app.AppCompatActivity
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Observable
@@ -9,7 +10,9 @@ import io.reactivex.rxjava3.core.Observer
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.functions.Consumer
+import io.reactivex.rxjava3.functions.Function
 import io.reactivex.rxjava3.schedulers.Schedulers
+import kotlinx.android.synthetic.main.activity_main.*
 import java.util.concurrent.TimeUnit
 
 
@@ -21,6 +24,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
 
         /**
          * basic observable example
@@ -94,6 +98,59 @@ class MainActivity : AppCompatActivity() {
          */
 
         distinctOperatorExample()
+
+
+
+        /**
+         * map operator example
+         */
+        mapOperatorExample()
+
+        /**
+         * buffer operator example
+         */
+
+        bufferOperatorExample()
+
+        /**
+         * debounce operator example
+         */
+        val searchView: androidx.appcompat.widget.SearchView = findViewById(R.id.search_bar)
+        Observable
+            .create<String>{
+                searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
+                    override fun onQueryTextSubmit(query: String): Boolean {
+                        return false
+                    }
+
+                    override fun onQueryTextChange(newText: String): Boolean {
+                        if(!it.isDisposed)
+                            it.onNext(newText)
+                        return false
+                    }
+                })
+            }
+            .debounce(500, TimeUnit.MILLISECONDS)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(object : Observer<String>{
+                override fun onSubscribe(d: Disposable?) {
+
+                }
+
+                override fun onNext(t: String?) {
+                    Log.d(TAG, "$t")
+                }
+
+                override fun onError(e: Throwable?) {
+                }
+
+                override fun onComplete() {
+                }
+
+            })
+
+
     }
 
     private fun basicObservableExample() {
@@ -379,6 +436,65 @@ class MainActivity : AppCompatActivity() {
             }
 
         })
+    }
+
+    private fun mapOperatorExample(){
+        val extractDescriptionFunction: Function<Task, String> = Function {
+            Log.d(TAG, "Working on thread: ${Thread.currentThread().name}")
+            return@Function it.description
+        }
+
+        Observable
+            .fromIterable(DataSource.createTaskList())
+            .map(extractDescriptionFunction)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(object : Observer<String> {
+                override fun onSubscribe(d: Disposable?) {
+
+                }
+
+                override fun onNext(t: String?) {
+                    Log.d(TAG, "onNext: ${t}")
+                }
+
+                override fun onError(e: Throwable?) {
+                }
+
+                override fun onComplete() {
+                }
+
+
+            })
+    }
+
+    private fun bufferOperatorExample(){
+        Observable
+            .fromIterable(DataSource.createTaskList())
+            .buffer(2)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(object : Observer<List<Task>> {
+                override fun onSubscribe(d: Disposable?) {
+
+                }
+
+                override fun onNext(t: List<Task>?) {
+                    Log.d(TAG, "Results: ")
+                    for (i in t!!) {
+                        Log.d(TAG, "onNext: ${i.description}")
+                    }
+                }
+
+                override fun onError(e: Throwable?) {
+                }
+
+                override fun onComplete() {
+                }
+
+
+            })
+
     }
 
     override fun onDestroy() {
