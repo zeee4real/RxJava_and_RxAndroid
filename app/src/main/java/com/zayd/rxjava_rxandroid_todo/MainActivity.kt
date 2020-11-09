@@ -26,6 +26,7 @@ class MainActivity : AppCompatActivity() {
          * basic observable example
          */
 
+
         basicObservableExample()
 
         /**
@@ -33,25 +34,33 @@ class MainActivity : AppCompatActivity() {
          * one task and list of tasks
          */
 
+
         createOperatorExample()
+
 
         /**
          * just operator example
          * there can be a max of 10 values only using just operator
          */
+
         justOperatorExample()
+
 
         /**
          * range operator example
          * best way to use this when doing heavy expensive operation on loops
          */
 
+
         rangeOperatorExample()
+
 
         /**
          * repeats tasks assigned to it
          */
+
         repeatOperatorExample()
+
 
         /**
          * interval operator example
@@ -59,7 +68,9 @@ class MainActivity : AppCompatActivity() {
          * emit every sec
          */
 
+
         intervalOperatorExample()
+
 
         /**
          * timer operator example
@@ -67,9 +78,22 @@ class MainActivity : AppCompatActivity() {
          * emit once only when the timer has elapsed
          */
 
+
         timerOperatorExample()
 
 
+
+        /**
+         * filter operator example
+         */
+        filterOperatorExample()
+
+
+        /**
+         * distinct operator example
+         */
+
+        distinctOperatorExample()
     }
 
     private fun basicObservableExample() {
@@ -303,6 +327,59 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+    private fun filterOperatorExample() {
+        val observable = Observable
+            .fromIterable(DataSource.createTaskList())
+            .filter {
+                return@filter it.description == "Walk the dog"
+            }
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+
+        observable.subscribe(object : Observer<Task> {
+            override fun onSubscribe(d: Disposable?) {
+
+            }
+
+            override fun onNext(t: Task?) {
+                Log.d(TAG, "onNext: ${t?.description}")
+            }
+
+            override fun onError(e: Throwable?) {
+            }
+
+            override fun onComplete() {
+            }
+
+        })
+    }
+
+    private fun distinctOperatorExample() {
+        val observable = Observable
+            .fromIterable(DataSource.createTaskList())
+            .distinct {
+                return@distinct it.description
+            }
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+
+        observable.subscribe(object : Observer<Task> {
+            override fun onSubscribe(d: Disposable?) {
+
+            }
+
+            override fun onNext(t: Task?) {
+                Log.d(TAG, "onNext: ${t?.description}")
+            }
+
+            override fun onError(e: Throwable?) {
+            }
+
+            override fun onComplete() {
+            }
+
+        })
+    }
 
     override fun onDestroy() {
         super.onDestroy()
